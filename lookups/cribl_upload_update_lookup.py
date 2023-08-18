@@ -91,7 +91,7 @@ def cribl_update_lookup(url, token, tmp_filename, lookup_name):
 if __name__ == "__main__":
 
     username = "admin"
-    password = "K33p0ut!"
+    password = ""
     cribl_api_url = "http://cribl.maejer.lab:9000"
 
     lookup_name = "test2.csv"
