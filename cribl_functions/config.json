@@ -1,0 +1,8 @@
+{
+    "cribl_conn": {
+        "username": "admin",
+        "password": "UGgwM25peEA=",
+        "url": "http://cribl.maejer.lab:9000"
+    },
+    "worker_group": "default"
+}
