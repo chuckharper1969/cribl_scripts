@@ -2,7 +2,7 @@
 cribl_scripts
 
 # config.json
-'''
+```
 {
     "cribl_conn": {
         "username": "admin",
@@ -11,4 +11,4 @@ cribl_scripts
     },
     "worker_group": "default"
 }
-'''
+```
