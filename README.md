@@ -1,6 +1,10 @@
 # cribl_scripts
 cribl_scripts
 
+# sync_git_file_with_lookup
+Syncs lookup files from the repo location project_documents/common/lookup_files with lookups in Cribl
+
+
 # secret.json
 Some of the example scripts requires a secret.json in the following format. The password is entered in plain-text but after execution of the script it will base64 encode the string.
 ```
