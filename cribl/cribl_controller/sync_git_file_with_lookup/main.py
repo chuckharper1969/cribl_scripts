@@ -104,7 +104,7 @@ def cribl_get_lookups(cribl_url, cribl_group, cribl_token):
         r.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(r.text)
-        sys.exit("ERROR: %s" % str(e))
+        raise SystemError(str(e))
     
     return r.json()
 
@@ -126,8 +126,9 @@ def cribl_upload_lookup(cribl_url, cribl_group, cribl_token, lookup_name, conten
 
     try:
         r = requests.put(endpoint, params=params, headers=headers, data=content)
+        r.raise_for_status()
     except requests.exceptions.RequestException as e:
-        return json_obj, str(e)
+        raise SystemError(str(e))
     
     if "Unauthorized" in r.text:
         return json_obj, r.text
@@ -135,7 +136,7 @@ def cribl_upload_lookup(cribl_url, cribl_group, cribl_token, lookup_name, conten
     try:
         json_obj = json.loads(r.text)
     except Exception as e:
-        return json_obj, str(e)
+        raise SystemError(str(e))
 
     return json_obj, "OK"
 
@@ -200,6 +201,33 @@ def cribl_update_lookup(cribl_url, cribl_token, cribl_group, tmp_filename, looku
 
     return json_obj, "OK"
 
+def git_get_contents(connection, repo_name, base_path):
+    url = connection.get("url", "https://api.github.com")
+    organization = connection.get("organization", "chuckharper1969")
+    headers = connection.get("headers", {"Acccept": "application/vnd.github.v3+json"})
+    verify = connection.get("verify", False)
+
+    credentials = (connection["username"], connection["token"])
+
+    # GET /repos/{owner}/{repo}/contents/{path}
+    endpoint = f"{url}/repos/{organization}/{repo_name}/contents/{base_path}"
+
+    #r.raise_for_status()
+    try:
+        response = requests.get(endpoint, auth=credentials, verify=verify, headers=headers)
+    except requests.exceptions.RequestException as e:
+        raise SystemExit(str(e))
+    
+    if not response.status_code == 200:
+        raise SystemExit(response.content)
+    
+    try:
+        json_obj = json.loads(response.content)
+    except Exception as e:
+        raise SystemExit(str(e))
+
+    return json_obj
+
 
 ##############################################################################
 # Loop through Cribl lookup files in Git and compare with what is in Cribl
@@ -229,19 +257,18 @@ def main():
         cribl_lookups[item["id"]] = item["size"]
 
     # Get list of lookups in Git
-    GIT_API_URL = "https://api.github.com"
-    GIT_ORG = "chuckharper1969"
-    GIT_TOKEN = "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"
-    headers = {
-        "Acccept": "application/vnd.github.v3+json"
-    }
-    # GET /repos/{owner}/{repo}/contents/{path}
-    endpoint = "https://api.github.com/repos/chuckharper1969/project_documents/contents/common/lookup_files"
+    git_username = credentials["development"]["git_conn"]["username"]
+    git_token = credentials["development"]["git_conn"]["token"]
+    git_api_url = "https://api.github.com"
+    git_org = "chuckharper1969"
+    git_lookup_repo = "project_documents"
+    git_lookup_base_path = "common/lookup_files"
 
-    response = requests.get(endpoint, auth=("chuckharper1969", GIT_TOKEN), verify=False, headers=headers)
-    if not response.status_code == 200:
-        raise SystemExit(response.content)
-    json_obj = json.loads(response.content)
+    git_connection = {
+        "username": credentials["development"]["git_conn"]["username"],
+        "token": credentials["development"]["git_conn"]["token"]
+    }
+    json_obj = git_get_contents(git_connection, git_lookup_repo, git_lookup_base_path)
 
     git_lookups = {}
     for file_obj in json_obj:
@@ -256,18 +283,17 @@ def main():
             ###########################################################################
             # Upload lookup file, Creates .tmp file when uploaded
             ###########################################################################
-            endpoint = f"https://api.github.com/repos/chuckharper1969/project_documents/contents/common/lookup_files/{lookup_name}"
+            json_obj = git_get_contents(git_connection, git_lookup_repo, f"{git_lookup_base_path}/{lookup_name}")
+            #content = base64.b64decode(json_obj["content"].encode("utf-8")).decode().encode("utf-8")
+            content = base64.b64decode(json_obj["content"].encode("utf-8")).decode().encode("utf-8")
+            print(content)
 
-            response = requests.get(endpoint, auth=("chuckharper1969", GIT_TOKEN), verify=False, headers=headers)
-            if not response.status_code == 200:
-                raise SystemExit(response.content)
-            json_obj = json.loads(response.content)
-            content = base64.b64decode(json_obj["content"].encode("utf-8")).decode()
             json_obj, message = cribl_upload_lookup(cribl_url, cribl_worker_group, cribl_auth_token, lookup_name, content)
             if json_obj == None or not "filename" in json_obj:
                 print(f"Failed to upload file. [{message}]")
                 continue
             tmp_filename = json_obj["filename"]
+
             # if the lookup is not in cribl it needs to be posted else it needs to be patched
             if not lookup_name in cribl_lookups:
                 lookup_obj = {
