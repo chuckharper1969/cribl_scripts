@@ -257,13 +257,8 @@ def main():
         cribl_lookups[item["id"]] = item["size"]
 
     # Get list of lookups in Git
-    git_username = credentials["development"]["git_conn"]["username"]
-    git_token = credentials["development"]["git_conn"]["token"]
-    git_api_url = "https://api.github.com"
-    git_org = "chuckharper1969"
     git_lookup_repo = "project_documents"
     git_lookup_base_path = "common/lookup_files"
-
     git_connection = {
         "username": credentials["development"]["git_conn"]["username"],
         "token": credentials["development"]["git_conn"]["token"]
@@ -284,9 +279,7 @@ def main():
             # Upload lookup file, Creates .tmp file when uploaded
             ###########################################################################
             json_obj = git_get_contents(git_connection, git_lookup_repo, f"{git_lookup_base_path}/{lookup_name}")
-            #content = base64.b64decode(json_obj["content"].encode("utf-8")).decode().encode("utf-8")
             content = base64.b64decode(json_obj["content"].encode("utf-8")).decode().encode("utf-8")
-            print(content)
 
             json_obj, message = cribl_upload_lookup(cribl_url, cribl_worker_group, cribl_auth_token, lookup_name, content)
             if json_obj == None or not "filename" in json_obj:
