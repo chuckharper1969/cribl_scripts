@@ -1,6 +1,6 @@
 import requests
 import getpass
-
+ 
 requests.urllib3.disable_warnings(requests.urllib3.exceptions.InsecureRequestWarning)
 
 ##############################################################################
@@ -26,21 +26,20 @@ def auth(cribl_connection, verify=False):
 
     return r.json()["token"]
 
-
 ##############################################################################
 # cribl_get_outputs
 ##############################################################################
-def cribl_get_outputs(cribl_connection):
+def cribl_delete_lookups_by_id(cribl_connection, lookup_id, verify=False):
 
     header = {
         "Accept": "application/json", 
         "Authorization": f"Bearer {cribl_connection['token']}"
     }
 
-    endpoint = f"{cribl_connection['url']}/api/v1/m/{cribl_connection['group']}/system/outputs"
+    endpoint = f"{cribl_connection['url']}/api/v1/m/{cribl_connection['group']}/system/lookups/{lookup_id}"
 
     try:
-        r = requests.get(endpoint, headers=header, verify=False)
+        r = requests.delete(endpoint, headers=header, verify=verify)
         r.raise_for_status()
     except requests.exceptions.RequestException as e:
         raise SystemExit(str(e))
@@ -48,6 +47,7 @@ def cribl_get_outputs(cribl_connection):
     return r.json()
 
 def main():
+    
     cribl_conn = {
         "username": "admin",
         "password": getpass.getpass("Enter Password: "),
@@ -56,9 +56,11 @@ def main():
     }
     cribl_conn["token"] = auth(cribl_conn)
 
-    # Get List of outputs from Cribl
-    cribl_output_items = cribl_get_outputs(cribl_conn)
-    print(cribl_output_items)
+    lookup_id = "cities.csv"
+
+    cribl_lookup_items = cribl_delete_lookups_by_id(cribl_conn, lookup_id)
+
+    print(cribl_lookup_items["items"])
 
 if __name__ == "__main__":
     main()
