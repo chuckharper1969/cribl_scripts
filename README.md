@@ -2,7 +2,7 @@
 cribl_scripts
 
 # sync_git_file_with_lookup
-Syncs lookup files from the repo location project_documents/common/lookup_files with lookups in Cribl
+Syncs lookup files from the Github repo location project_documents/common/lookup_files with lookups in Cribl
 
 
 # secret.json
