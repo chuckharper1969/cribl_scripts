@@ -15,7 +15,7 @@ def load_json_file(file_path):
         with open(file_path) as file_obj:
             json_obj = json.load(file_obj)
     except Exception as e:
-        raise(f"Failed loading json file [{str(e)}]")
+        raise("Failed opening json file [%s]" % str(e))
 
     return(json_obj)
 
@@ -89,24 +89,43 @@ def auth(cribl_url, cribl_username, cribl_password):
 
 
 ##############################################################################
-# cribl_get_outputs
+# Upload Lookup File
 ##############################################################################
-def cribl_get_outputs(cribl_url, cribl_group, cribl_token):
+def cribl_upload_lookup(cribl_url, cribl_group, cribl_token, lookup_dir, lookup_name):
+    json_obj = None
 
-    header = {
-        "Accept": "application/json", 
+    headers = {
+        "Content-Type": "text/csv", 
         "Authorization": f"Bearer {cribl_token}"
     }
+    params = {
+        "filename": lookup_name,
+    }
 
-    endpoint = f"{cribl_url}/api/v1/m/{cribl_group}/system/outputs"
+    endpoint = f"{cribl_url}/api/v1/m/{cribl_group}/system/lookups"
 
     try:
-        r = requests.get(endpoint, headers=header, verify=False)
-        r.raise_for_status()
+        file_path = os.path.join(lookup_dir, lookup_name)
+        with open(file_path, 'rb') as file_obj:
+            data = file_obj.read()
+    except Exception as e:
+        return json_obj, str(e)
+
+    try:
+        r = requests.put(endpoint, params=params, headers=headers, data=data)
     except requests.exceptions.RequestException as e:
-        raise SystemExit(str(e))
+        return json_obj, str(e)
     
-    return r.json()
+    if "Unauthorized" in r.text:
+        return json_obj, r.text
+    
+    try:
+        json_obj = json.loads(r.text)
+    except Exception as e:
+        return json_obj, str(e)
+
+    return json_obj, "OK"
+
 
 def main():
     secret_json_file = os.path.join("C:\\Users\\email\\secret.json")
@@ -117,17 +136,22 @@ def main():
     cribl_url = "http://cribl.maejer.lab:9000"
     cribl_worker_group = "default"
 
+    lookup_dir = "C:\\Users\\email\\OneDrive\\Documents"
+    lookup_name = "snakes_count_10.csv"
+
     ###########################################################################
     # Get Cribl Token
     ###########################################################################
     cribl_auth_token = auth(cribl_url, cribl_username, cribl_password)
 
     ###########################################################################
-    # Get List of outputs from Cribl
-    # GET /api/v1/system/outputs
+    # Upload lookup file, Creates .tmp file when uploaded
     ###########################################################################
-    cribl_output_items = cribl_get_outputs(cribl_url, cribl_worker_group, cribl_auth_token)
-    print(cribl_output_items)
+    json_obj, message = cribl_upload_lookup(cribl_url, cribl_worker_group, cribl_auth_token, lookup_dir, lookup_name)
+    if json_obj == None or not "filename" in json_obj:
+        raise SystemExit(f"Failed to upload file. [{message}]")
+    
+    print("Success: %s" % json_obj)
 
 if __name__ == "__main__":
     main()
