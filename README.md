@@ -1,7 +1,7 @@
 # cribl_scripts
 cribl_scripts
 
-# sync_git_file_with_lookup
+# [sync_git_file_with_lookup](https://github.com/chuckharper1969/scripts/tree/main/cribl/cribl_controller/sync_git_file_with_lookup)
 Syncs lookup files from the Github repo location [project_documents/common/lookup_files](https://github.com/chuckharper1969/project_documents/tree/main/common/lookup_files)  with lookups in Cribl
 
 
