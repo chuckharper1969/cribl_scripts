@@ -2,6 +2,7 @@
 cribl_scripts
 
 # secret.json
+Some of the example scripts requires a secret.json in the following format. The password is entered in plain-text but after execution of the script it will base64 encode the string.
 ```
 {
     "development": {
@@ -10,11 +11,11 @@ cribl_scripts
             "password": "VEhJU19XSUxMX05PVF9XT1JL"
         },
         "git_conn": {
-            "username": "admin",
+            "username": "chuckharper1969",
             "token": "VEhJU19XSUxMX05PVF9XT1JL"
         },
         "splunk_conn": {
-            "username": "admin",
+            "username": "charper",
             "password": "VEhJU19XSUxMX05PVF9XT1JL"
         }
     }
