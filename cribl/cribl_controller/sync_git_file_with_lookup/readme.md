@@ -5,8 +5,8 @@ Syncs lookup files from the Github repo location [project_documents/common/looku
 
   - Item 1, List A
   - Item 2, List A
-  * Item 1, List B
-  + Item 1, List C
+  - Item 1, List B
+  - Item 1, List C
 
 # secret.json
 Some of the example scripts requires a secret.json in the following format. The password is entered in plain-text but after execution of the script it will base64 encode the string.
