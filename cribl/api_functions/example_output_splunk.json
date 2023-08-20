@@ -1,0 +1,48 @@
+{
+  "systemFields": [
+    "cribl_pipe"
+  ],
+  "streamtags": [],
+  "dnsResolvePeriodSec": 600,
+  "loadBalanceStatsPeriodSec": 300,
+  "maxConcurrentSenders": 0,
+  "nestedFields": "none",
+  "throttleRatePerSec": "0",
+  "connectionTimeout": 10000,
+  "writeTimeout": 60000,
+  "tls": {
+    "disabled": true
+  },
+  "enableMultiMetrics": false,
+  "enableACK": true,
+  "maxS2Sversion": "v3",
+  "onBackpressure": "block",
+  "indexerDiscovery": false,
+  "senderUnhealthyTimeAllowance": 100,
+  "authType": "manual",
+  "excludeSelf": false,
+  "hosts": [
+    {
+      "port": 9997,
+      "tls": "inherit",
+      "weight": 1,
+      "host": "splunk-idx01.maejer.lab"
+    },
+    {
+      "port": 9997,
+      "tls": "inherit",
+      "weight": 1,
+      "host": "splunk-idx02.maejer.lab"
+    },
+    {
+      "port": 9997,
+      "tls": "inherit",
+      "weight": 1,
+      "host": "splunk-idx03.maejer.lab"
+    }
+  ],
+  "authToken": "",
+  "type": "splunk_lb",
+  "id": "example_output_splunk",
+  "pipeline": "passthru"
+}
