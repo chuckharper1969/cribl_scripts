@@ -66,20 +66,20 @@ def process_authentication_file(auth_file_path, encrypted_keys=["password", "tok
 ##############################################################################
 # Cribl Auth
 ##############################################################################
-def auth(cribl_url, cribl_username, cribl_password):
+def auth(cribl_connection, verify=False):
     header = {
-        'Accept': 'application/json', 
-        'Content-Type': 'application/json'
+        "Accept": "application/json", 
+        "Content-Type": "application/json"
     }
     data =  {
-        "username": cribl_username,
-        "password": cribl_password
+        "username": cribl_connection["username"],
+        "password": cribl_connection["password"]
     }
 
-    endpoint = f"{cribl_url}/api/v1/auth/login"
+    endpoint = f"{cribl_connection['url']}/api/v1/auth/login"
 
     try:
-        r = requests.post(endpoint, headers=header, json=data, verify=False)
+        r = requests.post(endpoint, headers=header, json=data, verify=verify)
         r.raise_for_status()
     except requests.exceptions.RequestException as e:
         raise SystemExit(str(e))
@@ -89,93 +89,99 @@ def auth(cribl_url, cribl_username, cribl_password):
 ##############################################################################
 # cribl_get_outputs
 ##############################################################################
-def cribl_get_lookups(cribl_url, cribl_group, cribl_token):
+def cribl_get_lookups(cribl_connection, verify=False):
 
     header = {
-        'Accept': 'application/json', 
-        'Authorization': 'Bearer ' + cribl_token 
+        "Accept": "application/json", 
+        "Authorization": f"Bearer {cribl_connection['token']}"
     }
 
-    endpoint = f"api/v1/m/{cribl_group}/system/lookups"
-    cribl_uri = "%s/%s" % (cribl_url, endpoint)
+    endpoint = f"{cribl_connection['url']}/api/v1/m/{cribl_connection['group']}/system/lookups"
 
     try:
-        r = requests.get(cribl_uri, headers=header, verify=False)
+        r = requests.get(endpoint, headers=header, verify=verify)
         r.raise_for_status()
     except requests.exceptions.RequestException as e:
-        print(r.text)
-        raise SystemError(str(e))
+        raise SystemExit(str(e))
     
     return r.json()
 
 ##############################################################################
 # Upload Lookup File
 ##############################################################################
-def cribl_upload_lookup(cribl_url, cribl_group, cribl_token, lookup_name, content):
+def cribl_upload_lookup(cribl_connection, lookup_name, content, verify=False):
     json_obj = None
 
     headers = {
         "Content-Type": "text/csv", 
-        "Authorization": f"Bearer {cribl_token}"
+        "Authorization": f"Bearer {cribl_connection['token']}"
     }
     params = {
         "filename": lookup_name,
     }
 
-    endpoint = f"{cribl_url}/api/v1/m/{cribl_group}/system/lookups"
+    endpoint = f"{cribl_connection['url']}/api/v1/m/{cribl_connection['group']}/system/lookups"
 
     try:
         r = requests.put(endpoint, params=params, headers=headers, data=content)
-        r.raise_for_status()
     except requests.exceptions.RequestException as e:
-        raise SystemError(str(e))
+        raise SystemExit(str(e))
     
     if "Unauthorized" in r.text:
-        return json_obj, r.text
+        raise SystemExit(r.text)
     
     try:
         json_obj = json.loads(r.text)
     except Exception as e:
-        raise SystemError(str(e))
+        raise SystemExit(str(e))
 
-    return json_obj, "OK"
+    return json_obj
 
 ##############################################################################
 # Cribl Create Lookup
 ##############################################################################
-def cribl_create_lookup(cribl_url, cribl_token, cribl_group, lookup_obj):
+def cribl_create_lookup(cribl_connection, tmp_filename):
     json_obj = None
+
+    lookup_name = ".".join(tmp_filename.split(".")[:-2])
+    lookup_obj = {
+        "id": lookup_name,
+        "fileInfo": {
+            "filename": tmp_filename
+        }
+    }
 
     headers = {
         "Accept": "application/json", 
-        "Authorization": f"Bearer {cribl_token}"
+        "Authorization": f"Bearer {cribl_connection['token']}"
     }
 
-    cribl_uri = f"{cribl_url}/api/v1/m/{cribl_group}/system/lookups"
+    endpoint = f"{cribl_connection['url']}/api/v1/m/{cribl_connection['group']}/system/lookups"
 
     try:
-        r = requests.post(cribl_uri, headers=headers, json=lookup_obj)
+        r = requests.post(endpoint, headers=headers, json=lookup_obj)
     except requests.exceptions.RequestException as e:
-        print("ERROR: patch request %s [%s]" % (cribl_uri, str(e)))
-        return json_obj
+        raise SystemExit(str(e))
     
     if "Unauthorized" in r.text:
-        print("ERROR: patch request %s [Invalid Token]" % (cribl_uri))
-        return json_obj
+        raise SystemExit(r.text)
     
     try:
         json_obj = json.loads(r.text)
-    except:
-        print("ERROR: put request %s [Invalid JSON returned]" % (cribl_uri))
+    except Exception as e:
+        raise SystemExit(str(e))
 
     return json_obj
 
-def cribl_update_lookup(cribl_url, cribl_token, cribl_group, tmp_filename, lookup_name):
+##############################################################################
+# cribl_update_lookup
+##############################################################################
+def cribl_update_lookup(cribl_connection, tmp_filename, lookup_name):
     json_obj = None
 
     headers = {
         "Accept": "application/json", 
-        "Authorization": f"Bearer {cribl_token}" 
+        "Authorization": f"Bearer {cribl_connection['token']}" 
     }
     json_data = {
         "id": lookup_name,
@@ -184,23 +190,26 @@ def cribl_update_lookup(cribl_url, cribl_token, cribl_group, tmp_filename, looku
         },
     }
 
-    endpoint = f"{cribl_url}/api/v1/m/{cribl_group}/system/lookups/{lookup_name}"
+    endpoint = f"{cribl_connection['url']}/api/v1/m/{cribl_connection['group']}/system/lookups/{lookup_name}"
 
     try:
         r = requests.patch(endpoint, headers=headers, json=json_data)
     except requests.exceptions.RequestException as e:
-        return json_obj, str(e)
+        raise SystemExit(str(e))
     
     if "Unauthorized" in r.text:
-        return json_obj, r.text
+        raise SystemExit(r.text)
     
     try:
         json_obj = json.loads(r.text)
     except:
-        return json_obj, r.text
+        raise SystemExit(str(e))
 
-    return json_obj, "OK"
+    return json_obj
 
+##############################################################################
+# git_get_contents
+##############################################################################
 def git_get_contents(connection, repo_name, base_path):
     url = connection.get("url", "https://api.github.com")
     organization = connection.get("organization", "chuckharper1969")
@@ -237,21 +246,19 @@ def main():
     secret_json_file = os.path.join("C:\\Users\\email\\secret.json")
     credentials = process_authentication_file(secret_json_file)
 
-    cribl_username = credentials["development"]["cribl_conn"]["username"]
-    cribl_password = credentials["development"]["cribl_conn"]["password"]
-    cribl_url = "http://cribl.maejer.lab:9000"
-    cribl_worker_group = "default"
-
-    ###########################################################################
-    # Get Cribl Token
-    ###########################################################################
-    cribl_auth_token = auth(cribl_url, cribl_username, cribl_password)
+    cribl_conn = {
+        "username": credentials["development"]["cribl_conn"]["username"],
+        "password": credentials["development"]["cribl_conn"]["password"],
+        "url": "http://cribl.maejer.lab:9000",
+        "group": "default"
+    }
+    cribl_conn["token"] = auth(cribl_conn)
 
     ###########################################################################
     # Get List of lookups from Cribl
     # GET /api/v1/system/lookups
     ###########################################################################
-    cribl_lookup_items = cribl_get_lookups(cribl_url, cribl_worker_group, cribl_auth_token)
+    cribl_lookup_items = cribl_get_lookups(cribl_conn)
     cribl_lookups = {}
     for item in cribl_lookup_items["items"]:
         cribl_lookups[item["id"]] = item["size"]
@@ -269,7 +276,9 @@ def main():
     for file_obj in json_obj:
         git_lookups[file_obj["name"]] = file_obj["size"]
     
+    print("Lookups in Cribl:")
     print(cribl_lookups)
+    print("Lookups in Git:")
     print(git_lookups)
 
     for lookup_name, size in git_lookups.items():
@@ -281,27 +290,26 @@ def main():
             json_obj = git_get_contents(git_connection, git_lookup_repo, f"{git_lookup_base_path}/{lookup_name}")
             content = base64.b64decode(json_obj["content"].encode("utf-8")).decode().encode("utf-8")
 
-            json_obj, message = cribl_upload_lookup(cribl_url, cribl_worker_group, cribl_auth_token, lookup_name, content)
+            json_obj = cribl_upload_lookup(cribl_conn, lookup_name, content)
             if json_obj == None or not "filename" in json_obj:
-                print(f"Failed to upload file. [{message}]")
+                print(f"Failed to upload file.")
                 continue
             tmp_filename = json_obj["filename"]
-
-            # if the lookup is not in cribl it needs to be posted else it needs to be patched
+            
+            # If lookup was not found in the list of current lookups then Create the lookup instead of Updating
             if not lookup_name in cribl_lookups:
-                lookup_obj = {
-                    "id": lookup_name,
-                    "fileInfo": {
-                        "filename": tmp_filename
-                    }
-                }
-                json_obj = cribl_create_lookup(cribl_url, cribl_auth_token, cribl_worker_group, lookup_obj)
-                print(json_obj)
-            else:
-                json_obj, message = cribl_update_lookup(cribl_url, cribl_auth_token, cribl_worker_group, tmp_filename, lookup_name)
-                print(json_obj)
+                json_obj = cribl_create_lookup(cribl_conn, tmp_filename)
+                # {'items': [{'id': 'snakes_count_10.csv', 'size': 91}], 'count': 1}
                 if json_obj == None or not "items" in json_obj:
-                    raise SystemExit("Failed to update file.")
+                    raise SystemExit("Failed to create lookup file.")
+            # lookup already exists
+            else:
+                json_obj = cribl_update_lookup(cribl_conn, tmp_filename, lookup_name)
+                # {'items': [{'id': 'snakes_count_10.csv', 'size': 91}], 'count': 1}
+                if json_obj == None or not "items" in json_obj:
+                    raise SystemExit("Failed to update lookup file.")
+            
+            print("Success: %s" % json_obj)
 
 
 if __name__ == "__main__":
