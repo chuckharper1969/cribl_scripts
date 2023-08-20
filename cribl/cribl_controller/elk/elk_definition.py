@@ -4,7 +4,7 @@ import requests
 
 requests.urllib3.disable_warnings(requests.urllib3.exceptions.InsecureRequestWarning)
 
-def hydrant_get_elk_destinations(url, username, password):
+def get_elk_destinations(url, username, password):
 
     cwd = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(cwd, "config", "elk_definitions.json")
@@ -156,9 +156,9 @@ def main():
     cribl_username = json_config["cribl_conn"]["username"]
     cribl_password = json_config["cribl_conn"]["password"]
 
-    hydrant_url = json_config["hydrant_conn"]["url"]
-    hydrant_username = json_config["hydrant_conn"]["username"]
-    hydrant_password = json_config["hydrant_conn"]["password"]
+    frontend_url = json_config["frontend_conn"]["url"]
+    frontend_username = json_config["frontend_conn"]["username"]
+    frontend_password = json_config["frontend_conn"]["password"]
 
     json_elk_output_router = None
     elk_output_router_name = json_config["elk_output_router_name"]
@@ -189,9 +189,9 @@ def main():
         cribl_elk_outputs.append(cribl_output)
 
     ###########################################################################
-    # Get list of ELK definitions from Hydrant
+    # Get list of ELK definitions from frontend
     ###########################################################################
-    elk_definitions = hydrant_get_elk_destinations(hydrant_url, hydrant_username, hydrant_password)
+    elk_definitions = get_elk_destinations(frontend_url, frontend_username, frontend_password)
 
     source_rules = {}
     source_outputs = {}
