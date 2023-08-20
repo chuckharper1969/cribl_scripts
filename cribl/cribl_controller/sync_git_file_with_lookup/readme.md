@@ -3,12 +3,10 @@
 [sync_git_file_with_lookup](https://github.com/chuckharper1969/scripts/tree/main/cribl/cribl_controller/sync_git_file_with_lookup/main.py)
 Syncs lookup files from the Github repo location [project_documents/common/lookup_files](https://github.com/chuckharper1969/project_documents/tree/main/common/lookup_files)  with lookups in Cribl
 
-/*:
   - Item 1, List A
   - Item 2, List A
   * Item 1, List B
   + Item 1, List C
- */
 
 # secret.json
 Some of the example scripts requires a secret.json in the following format. The password is entered in plain-text but after execution of the script it will base64 encode the string.
