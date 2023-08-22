@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import base64
+from configparser import ConfigParser
 
 requests.urllib3.disable_warnings(requests.urllib3.exceptions.InsecureRequestWarning)
 
@@ -243,7 +244,7 @@ def git_get_contents(connection, repo_name, base_path):
 # Update if neccessary
 ##############################################################################
 def main():
-    secret_json_file = os.path.join("C:\\Users\\email\\secret.json")
+    secret_json_file = "C:\\Users\\email\\secret.json"
     credentials = process_authentication_file(secret_json_file)
 
     cribl_conn = {
