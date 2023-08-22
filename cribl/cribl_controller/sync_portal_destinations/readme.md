@@ -1,5 +1,5 @@
 
-#[sync_portal_destinations](https://github.com/chuckharper1969/scripts/tree/main/cribl/cribl_controller/sync_git_file_with_lookup/main.py)
+# sync_portal_destinations
 
 Syncs destinations from [customer portal](https://github.com/chuckharper1969/cribl_customer_portal/tree/main/cribl_portals) running at [http://localhost:8000](http://localhost:8000) with destinations in Cribl running at [http://cribl.maejer.lab:9000](http://cribl.maejer.lab:9000).
 
