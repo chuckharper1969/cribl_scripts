@@ -3,7 +3,7 @@
 
 Syncs destinations from [customer portal]([https://github.com/chuckharper1969/cribl_customer_portal/tree/main/cribl_portals](https://github.com/chuckharper1969/cribl_customer_portal/tree/main)) running at [http://localhost:8000](http://localhost:8000) with destinations in Cribl running at [http://cribl.maejer.lab:9000](http://cribl.maejer.lab:9000).
 
-# Execution
+# execution
 The script can be executed through cron or similar.
 
 # secret.json
